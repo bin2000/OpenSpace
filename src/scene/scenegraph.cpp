@@ -46,6 +46,7 @@
 namespace {
     const std::string _loggerCat = "SceneGraph";
     const std::string _moduleExtension = ".mod";
+    const std::string _licenseExtension = ".license";
     const std::string _defaultCommonDirectory = "common";
     const std::string _commonModuleToken = "${COMMON_MODULE}";
 
@@ -53,6 +54,8 @@ namespace {
     const std::string KeyModules = "Modules";
     const std::string KeyCommonFolder = "CommonFolder";
     const std::string KeyPathModule = "ModulePath";
+
+    const std::string KeyLicenseText = "License";
 }
 
 namespace openspace {
@@ -76,6 +79,8 @@ void SceneGraph::clear() {
 
     _nodes.clear();
     _rootNode = nullptr;
+
+    _licenseInformation.clear();
 }
 
 bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
@@ -221,7 +226,6 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
 
         struct ModuleInformation {
             ghoul::Dictionary dictionary;
-            std::string moduleFile;
             std::string modulePath;
             std::string moduleName;
         };
@@ -233,7 +237,6 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
                 ghoul::lua::loadDictionaryFromFile(moduleFile, moduleDictionary, state);
                 moduleDictionaries.push_back({
                     moduleDictionary,
-                    moduleFile,
                     modulePath,
                     moduleName
                 });
@@ -271,7 +274,6 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
                     ghoul::lua::loadDictionaryFromFile(moduleFile, moduleDictionary, state);
                     moduleDictionaries.push_back({
                         moduleDictionary,
-                        moduleFile,
                         submodulePath,
                         moduleName
                     });
@@ -287,15 +289,16 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
 
         auto addModule = [this, &dependencies, &parents](const ModuleInformation& moduleInformation) {
             const ghoul::Dictionary& moduleDictionary = moduleInformation.dictionary;
-            const std::string& moduleFile = moduleInformation.moduleFile;
             const std::string& modulePath = moduleInformation.modulePath;
             const std::string& moduleName = moduleInformation.moduleName;
             
             std::vector<std::string> keys = moduleDictionary.keys();
             for (const std::string& key : keys) {
                 if (!moduleDictionary.hasValue<ghoul::Dictionary>(key)) {
-                    LERROR("SceneGraphNode '" << key << "' is not a table in module '"
-                           << moduleFile << "'");
+                    LERROR(
+                        "SceneGraphNode '" << key << "' is not a table in module '" <<
+                        FileSys.pathByAppendingComponent(modulePath, moduleName) + _moduleExtension << "'"
+                    );
                     continue;
                 }
                 
@@ -341,6 +344,13 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
                 SceneGraphNodeInternal* internalNode = new SceneGraphNodeInternal;
                 internalNode->node = node;
                 _nodes.push_back(internalNode);
+
+                std::string licenseFile = FileSys.pathByAppendingComponent(
+                    modulePath, moduleName) + _licenseExtension;
+                );
+                if (FileSys.fileExists(licenseFile)) {
+                    addLicenseInformation(moduleName, licenseFile);
+                }
             }
         };
 
@@ -411,6 +421,19 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
     }
     
     return true;
+}
+
+void SceneGraph::addLicenseInformation(std::string module, const std::string& licenseFile) {
+    ghoul_assert(FileSys.fileExists(licenseFile), "License file has to exist");
+
+    ghoul::Dictionary license = ghoul::lua::loadDictionaryFromFile(licenseFile);
+
+    if (license.hasKeyAndValue<std::string>(KeyLicenseText)) {
+        _licenseInformation.emplace_back(
+            std::move(module),
+            license.value<std::string>(KeyLicenseText)
+        );
+    }
 }
 
 bool SceneGraph::nodeIsDependentOnRoot(SceneGraphNodeInternal* node) {

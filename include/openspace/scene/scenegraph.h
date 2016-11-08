@@ -33,6 +33,11 @@ class SceneGraphNode;
 
 class SceneGraph {
 public:
+    struct LicenseInformation {
+        std::string module;
+        std::string text;
+    };
+
     SceneGraph();
     ~SceneGraph();
 
@@ -48,6 +53,8 @@ public:
     SceneGraphNode* rootNode() const;
     SceneGraphNode* sceneGraphNode(const std::string& name) const;
 
+    std::vector<LicenseInformation> sceneLicenseInformation() const;
+
 private:
     struct SceneGraphNodeInternal {
         ~SceneGraphNodeInternal();
@@ -62,11 +69,15 @@ private:
     bool nodeIsDependentOnRoot(SceneGraphNodeInternal* node);
     bool sortTopologically();
 
+    void addLicenseInformation(std::string module, const std::string& licenseFile);
+
     SceneGraphNodeInternal* nodeByName(const std::string& name);
 
     SceneGraphNode* _rootNode;
     std::vector<SceneGraphNodeInternal*> _nodes;
     std::vector<SceneGraphNode*> _topologicalSortedNodes;
+
+    std::vector<LicenseInformation> _licenseInformation;
 };
 
 } // namespace openspace
