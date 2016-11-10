@@ -25,19 +25,17 @@
 #ifndef __SCENEGRAPH_H__
 #define __SCENEGRAPH_H__
 
+#include <openspace/scene/scenelicense.h>
+
 #include <vector>
 #include <string>
+
 namespace openspace {
 
 class SceneGraphNode;
 
 class SceneGraph {
 public:
-    struct LicenseInformation {
-        std::string module;
-        std::string text;
-    };
-
     SceneGraph();
     ~SceneGraph();
 
@@ -53,7 +51,7 @@ public:
     SceneGraphNode* rootNode() const;
     SceneGraphNode* sceneGraphNode(const std::string& name) const;
 
-    std::vector<LicenseInformation> sceneLicenseInformation() const;
+    const SceneLicense& sceneLicenseInformation() const;
 
 private:
     struct SceneGraphNodeInternal {
@@ -69,15 +67,13 @@ private:
     bool nodeIsDependentOnRoot(SceneGraphNodeInternal* node);
     bool sortTopologically();
 
-    void addLicenseInformation(std::string module, const std::string& licenseFile);
-
     SceneGraphNodeInternal* nodeByName(const std::string& name);
 
     SceneGraphNode* _rootNode;
     std::vector<SceneGraphNodeInternal*> _nodes;
     std::vector<SceneGraphNode*> _topologicalSortedNodes;
 
-    std::vector<LicenseInformation> _licenseInformation;
+    SceneLicense _licenseInformation;
 };
 
 } // namespace openspace

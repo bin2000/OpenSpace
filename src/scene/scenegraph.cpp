@@ -54,8 +54,6 @@ namespace {
     const std::string KeyModules = "Modules";
     const std::string KeyCommonFolder = "CommonFolder";
     const std::string KeyPathModule = "ModulePath";
-
-    const std::string KeyLicenseText = "License";
 }
 
 namespace openspace {
@@ -345,11 +343,11 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
                 internalNode->node = node;
                 _nodes.push_back(internalNode);
 
-                std::string licenseFile = FileSys.pathByAppendingComponent(
-                    modulePath, moduleName) + _licenseExtension;
-                );
+                std::string licenseFile =
+                    FileSys.pathByAppendingComponent(modulePath, moduleName) +
+                    _licenseExtension;
                 if (FileSys.fileExists(licenseFile)) {
-                    addLicenseInformation(moduleName, licenseFile);
+                    _licenseInformation.addLicenseInformation(moduleName, licenseFile);
                 }
             }
         };
@@ -423,17 +421,8 @@ bool SceneGraph::loadFromFile(const std::string& sceneDescription) {
     return true;
 }
 
-void SceneGraph::addLicenseInformation(std::string module, const std::string& licenseFile) {
-    ghoul_assert(FileSys.fileExists(licenseFile), "License file has to exist");
-
-    ghoul::Dictionary license = ghoul::lua::loadDictionaryFromFile(licenseFile);
-
-    if (license.hasKeyAndValue<std::string>(KeyLicenseText)) {
-        _licenseInformation.emplace_back(
-            std::move(module),
-            license.value<std::string>(KeyLicenseText)
-        );
-    }
+const SceneLicense& SceneGraph::sceneLicenseInformation() const {
+    return _licenseInformation;
 }
 
 bool SceneGraph::nodeIsDependentOnRoot(SceneGraphNodeInternal* node) {

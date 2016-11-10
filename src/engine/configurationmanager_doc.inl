@@ -231,7 +231,7 @@ Documentation ConfigurationManager::Documentation() {
                     new StringVerifier,
                     "The file that will be created on startup containing the list of "
                     "all keyboard bindings with their respective Lua scripts. Any "
-                    "previous file in this location will be silently overritten."
+                    "previous file in this location will be silently overwritten."
                 }
             }),
             "Contains the collection of all keyboard shortcuts that were collected "
@@ -255,7 +255,7 @@ Documentation ConfigurationManager::Documentation() {
                     new StringVerifier,
                     "The file that will be created on startup containing this "
                     "documentation. Any previous file in this location will be silently "
-                    "overritten."
+                    "overwritten."
                 }
             }),
             "This defines the location and type of this documentation file.",
@@ -277,12 +277,37 @@ Documentation ConfigurationManager::Documentation() {
                     new StringVerifier,
                     "The file that will be created on startup containing the factory "
                     "documentation. Any previous file in this location will be silently "
-                    "overritten."
+                    "overwritten."
                 }
             }),
             "This defines the location and type of the factory documentation file, which "
             "shows the different types of objects that can be created in the current "
-            "application configuration."
+            "application configuration.",
+            Optional::Yes
+        },
+        {
+            ConfigurationManager::KeyLicenseDocumentation,
+            new TableVerifier({
+                {
+                    ConfigurationManager::PartType,
+                    new StringInListVerifier(
+                        // List from SceneLicense::writeDocumentation
+                        { "text", "html" }
+                    ),
+                    "The type of license documentation that should be written."
+                },
+                {
+                    ConfigurationManager::PartFile,
+                    new StringVerifier,
+                    "The file that will be created on startup containing the license "
+                    "information for the currently loaded scene. Any previous file in "
+                    "this location will be silently overwritten."
+                }
+            }),
+            "This defines the location and type of the license documentation file, which "
+            "gives information about the license restrictions for the currently loaded "
+            "scene.",
+            Optional::Yes
         },
         {
             ConfigurationManager::KeyShutdownCountdown,

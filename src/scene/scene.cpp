@@ -131,6 +131,25 @@ void Scene::update(const UpdateData& data) {
                 OsEng.interactionHandler().writeKeyboardDocumentation(type, file);
             }
 
+            // And the license information is available
+            const std::string LicenseInformationType =
+                ConfigurationManager::KeyLicenseDocumentation + "." +
+                ConfigurationManager::PartType;
+
+            const std::string LicenseInformationFile =
+                ConfigurationManager::KeyLicenseDocumentation + "." +
+                ConfigurationManager::PartFile;
+
+            hasType = OsEng.configurationManager().getValue(
+                LicenseInformationType, type
+            );
+            hasFile = OsEng.configurationManager().getValue(
+                LicenseInformationFile, file
+            );
+            if (hasType && hasFile) {
+                _graph.sceneLicenseInformation().writeDocumentation(type, file);
+            }
+
             LINFO("Loaded " << _sceneGraphToLoad);
             _sceneGraphToLoad = "";
         }
